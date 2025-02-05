@@ -7,57 +7,31 @@ services:
             - --character-set-server=utf8mb4
             - --collation-server=utf8mb4_unicode_ci
             - --skip-character-set-client-handshake
-            - --skip-innodb-read-only-compressed
+            - --skip-innodb-read-only-compressed # Temporary fix for MariaDB 10.6
         environment:
             MYSQL_ROOT_PASSWORD: 123
         volumes:
             - mariadb-data:/var/lib/mysql
+        ports:
+            - 3306:3306
 
     redis:
         image: redis:alpine
+        ports:
+            - 6379:6379
 
     frappe:
         image: frappe/bench:latest
-        command: >
-            bash -c "
-            cd /home/frappe &&
-            if [ ! -d 'frappe-bench' ]; then
-              echo 'Initializing new bench...' &&
-              bench init --skip-redis-config-generation frappe-bench;
-            fi &&
-            cd frappe-bench &&
-            if [ ! -d 'sites/lms.localhost' ]; then
-              echo 'Setting up site and apps...' &&
-              bench get-app lms &&
-              bench new-site lms.localhost --force --mariadb-root-password 123 --admin-password admin --no-mariadb-socket &&
-              bench --site lms.localhost install-app lms &&
-              bench set-mariadb-host mariadb &&
-              bench set-redis-cache-host redis:6379 &&
-              bench set-redis-queue-host redis:6379 &&
-              bench set-redis-socketio-host redis:6379 &&
-              sed -i '/redis/d' ./Procfile &&
-              sed -i '/watch/d' ./Procfile &&
-              bench --site lms.localhost set-config developer_mode 1 &&
-              bench config set -g dev_server true &&
-              bench --site lms.localhost clear-cache &&
-              bench use lms.localhost;
-            fi &&
-            echo 'Starting bench...' &&
-            cd /home/frappe/frappe-bench &&
-            bench start"
+        command: bash /workspace/init.sh
         environment:
             - SHELL=/bin/bash
-        working_dir: /home/frappe/frappe-bench
+            - DEVELOPER_MODE=1
+        working_dir: /home/frappe
+        volumes:
+            - .:/workspace
         ports:
             - 8000:8000
             - 9000:9000
-        volumes:
-            - frappe-bench:/home/frappe/frappe-bench
-            - ./:/home/frappe/frappe-bench/apps/lms
-        depends_on:
-            - mariadb
-            - redis
 
 volumes:
     mariadb-data:
-    frappe-bench:

@@ -16,9 +16,15 @@ cd frappe-bench
 
 # Use containers instead of localhost
 bench set-mariadb-host mariadb
+# bench set-mariadb-host localhost:3306
 bench set-redis-cache-host redis:6379
 bench set-redis-queue-host redis:6379
 bench set-redis-socketio-host redis:6379
+# bench set-redis-cache-host localhost:6379
+# bench set-redis-queue-host localhost:6379
+# bench set-redis-socketio-host localhost:6379
+
+# bench set-mariadb-host localhost:3306 && bench set-redis-cache-host localhost:6379 && bench set-redis-queue-host localhost:6379 && bench set-redis-socketio-host localhost:6379
 
 # Remove redis, watch from Procfile
 sed -i '/redis/d' ./Procfile
@@ -38,4 +44,5 @@ bench --site lms.localhost set-config developer_mode 1
 bench --site lms.localhost clear-cache
 bench use lms.localhost
 
-bench start
+pip install watchdog
+watchmedo auto-restart --recursive --pattern="*.js;*.css;*.vue;" --command='bench build' & bench start
