@@ -7,27 +7,58 @@
 				class="h-7"
 				:items="[{ label: __('Courses'), route: { name: 'Courses' } }]"
 			/>
-			<div class="flex space-x-2 justify-end">
-				<div class="w-40 md:w-44">
-					<FormControl
+			<div class="flex items-center space-x-2 justify-end">
+				<div class="">
+					<select
+						v-if="categories.data?.length"
+						v-model="currentCategory"
+						class="box-border [font:inherit] m-0 [font-family:inherit] [font-size:inherit] appearance-none block px-[12px] py-[6px] h-[45px] leading-[1.42857143] rounded-none border-[2px] border-[solid] border-[#f0f2f5] bg-[#f0f2f5] [box-shadow:none] text-[#555] w-full [max-width:inherit] !pr-7"
+						:placeholder="__('Category')"
+					>
+						<option value="" disabled>Choose category</option>
+						<option
+							v-for="category in categories.data"
+							:key="category.id"
+							:value="category.id"
+						>
+							{{ category.name }}
+						</option>
+					</select>
+					<!-- <FormControl
 						v-if="categories.data?.length"
 						type="select"
 						v-model="currentCategory"
 						:options="categories.data"
 						:placeholder="__('Category')"
-					/>
+					/> -->
 				</div>
-				<div class="w-28 md:w-36">
-					<FormControl
+				<div class="flex items-center">
+					<input
 						type="text"
 						placeholder="Search"
 						v-model="searchQuery"
 						@input="courses.reload()"
+						class="box-border [font:inherit] m-0 [font-family:inherit] [font-size:inherit] appearance-none block px-[12px] py-[6px] h-[45px] leading-[1.42857143] rounded-none border-[2px] border-[solid] border-[#f0f2f5] bg-[#f0f2f5] [box-shadow:none] text-[#555] w-full [max-width:inherit] !pr-[80px]"
+					/>
+					<button
+						@click="courses.reload()"
+						class="bg-black h-[45px] w-[60px] flex items-center justify-center"
 					>
+						<Search class="text-white size-3" />
+					</button>
+					<UserProfile />
+
+					<!-- <FormControl
+						type="text"
+						placeholder="Search"
+						v-model="searchQuery"
+						@input="courses.reload()"
+						class=""
+						>
 						<template #prefix>
 							<Search class="w-4 h-4 stroke-1.5 text-gray-600" name="search" />
 						</template>
-					</FormControl>
+					</FormControl> -->
 				</div>
 				<router-link
 					v-if="user.data?.is_moderator || user.data?.is_instructor"
@@ -84,20 +115,20 @@
 												chapterNumber: course.current_lesson.split('-')[0],
 												lessonNumber: course.current_lesson.split('-')[1],
 											},
-									  }
+										}
 									: course.membership
-									? {
-											name: 'Lesson',
-											params: {
-												courseName: course.name,
-												chapterNumber: 1,
-												lessonNumber: 1,
-											},
-									  }
-									: {
-											name: 'CourseDetail',
-											params: { courseName: course.name },
-									  }
+										? {
+												name: 'Lesson',
+												params: {
+													courseName: course.name,
+													chapterNumber: 1,
+													lessonNumber: 1,
+												},
+											}
+										: {
+												name: 'CourseDetail',
+												params: { courseName: course.name },
+											}
 							"
 						>
 							<CourseCard :course="course" />
@@ -149,7 +180,7 @@
 				<div class="leading-5">
 					{{
 						__(
-							'There are no courses available at the moment. Keep an eye out, fresh learning experiences are on the way soon!'
+							'There are no courses available at the moment. Keep an eye out, fresh learning experiences are on the way soon!',
 						)
 					}}
 				</div>
@@ -174,10 +205,11 @@ import { ref, computed, inject, onMounted, watch } from 'vue'
 import { updateDocumentTitle } from '@/utils'
 import { useRouter } from 'vue-router'
 import { useSettings } from '@/stores/settings'
+import UserProfile from '@/components/Custom/header/UserProfile.vue'
 
 const user = inject('$user')
 const searchQuery = ref('')
-const currentCategory = ref(null)
+const currentCategory = ref("")
 const hasCourses = ref(false)
 const router = useRouter()
 const settings = useSettings()
@@ -249,12 +281,12 @@ const getCourses = (type) => {
 			(course) =>
 				course.title.toLowerCase().includes(query) ||
 				course.short_introduction.toLowerCase().includes(query) ||
-				course.tags.filter((tag) => tag.toLowerCase().includes(query)).length
+				course.tags.filter((tag) => tag.toLowerCase().includes(query)).length,
 		)
 	}
 	if (currentCategory.value && currentCategory.value != '') {
 		courseList = courseList.filter(
-			(course) => course.category == currentCategory.value
+			(course) => course.category == currentCategory.value,
 		)
 	}
 	return courseList
@@ -300,7 +332,7 @@ watch(
 			queries.delete('category')
 		}
 		history.pushState(null, '', `${location.pathname}?${queries.toString()}`)
-	}
+	},
 )
 
 const pageMeta = computed(() => {
