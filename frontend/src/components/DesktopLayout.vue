@@ -2,11 +2,11 @@
 	<div class="relative flex h-full flex-col">
 		<div class="h-full flex-1">
 			<div class="flex h-screen text-base">
-				<!-- <div
+				<div
 					class="relative block min-h-0 flex-shrink-0 overflow-hidden hover:overflow-auto"
 				>
 					<AppSidebar />
-				</div> -->
+				</div>
 				<div class="w-full overflow-auto" id="scrollContainer">
 					<slot />
 				</div>
